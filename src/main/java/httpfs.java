@@ -5,47 +5,37 @@ import java.io.*;
 
 public class httpfs {
 
+    private static int serverPort;
+
     public static void main(String[] args){
-        int port = getPort(args);
 
-        try(ServerSocket server = new ServerSocket(port)){
-            System.out.println("Server is waiting for the Client to connect.");
-            while(true){
-                Socket socket = server.accept();
-                System.out.println("Client and Server are connected.");
+        setServerPort(args);
+        new httpfs().runServer(args);
 
-                PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-                BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    }
 
-                String responseLine;
-                boolean response_content = false;
+    public void runServer(String[] args){
 
-                try{
-                    while((responseLine = reader.readLine())!=null) {
-                        System.out.println(responseLine);
-                    }
+        try{
+            ServerSocket server = new ServerSocket(serverPort);
+            System.out.println("Server is connected at port " + serverPort + " waiting for the Client to connect.");
+            Socket client = server.accept();
 
-                }catch(Exception e){
-                    e.printStackTrace();
-                }
+            httpfsLibrary httpfsLib = new httpfsLibrary(args, client);
+            httpfsLib.parseClientRequest();
 
-                reader.close();
-
-                writer.print("HTTP/1.1 200 OK\r\nContent-type:text/html\r\nContent-length:12\r\n\r\nHello There!");
-                writer.flush();
-                writer.close();
-                socket.close();
-            }
         }catch (IOException e){
-            System.out.println("Connection Problem.");
+            System.out.println("Connection Problem with connection or port " + serverPort);
+            System.out.println(e.getMessage());
         }
     }
 
-    private static int getPort(String[] args){
+    private static void setServerPort(String[] args){
         int findP = Arrays.asList(args).indexOf("-p");
         if(findP == -1){
-            return 8080;
+            serverPort = 8080;
         }
-        return Integer.parseInt(args[findP+1]);
+        else
+            serverPort = Integer.parseInt(args[findP+1]);
     }
 }
