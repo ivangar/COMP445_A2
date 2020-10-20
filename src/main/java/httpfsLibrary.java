@@ -7,38 +7,39 @@ public class httpfsLibrary {
 
     private Socket clientSocket;
     private boolean is_verbose = false;
-    private String path = Paths.get("").toAbsolutePath().toString();  //default current dir
+    private Path root = Paths.get("").toAbsolutePath();  //default system current dir
     private PrintWriter writer;
     private BufferedReader reader;
+    private String statusLine = " 200 OK";
 
     public httpfsLibrary(String[] args, Socket client) {
         clientSocket = client;
         setArgs(args);
-        System.out.println("Server directory is " + path);
+        System.out.println("Server directory is " + root.toString());
     }
 
     private void setArgs(String[] args){
         is_verbose = Arrays.asList(args).contains("-v");
 
-        //Add the path to dir
+        //Add the root to dir
         if(Arrays.asList(args).contains("-d")){
-            boolean path_arg = false;
+            boolean root_arg = false;
 
             for (String arg : args) {
                 if(arg.equalsIgnoreCase("-d")){
-                    path_arg = true;
+                    root_arg = true;
                     continue;
                 }
 
-                if(path_arg){
-                    path = path.concat(arg);
+                if(root_arg){
+                    root = Paths.get(root.toString(), arg);
                     try {
-                        Files.createDirectories(Paths.get(path));
+                        Files.createDirectories(root);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
 
-                    path_arg = false;
+                    root_arg = false;
                 }
             }
         }
@@ -80,9 +81,8 @@ public class httpfsLibrary {
             }
 
             int contentLength = response.length();
-            writer.println("HTTP/1.1 200 OK\r\nServer:localhost\r\nContent-Type:text/html\r\nContent-length:"+ contentLength +"\r\nConnection: Closed\r\n\r\n" + response.toString());
+            writer.println("HTTP/1.1" + statusLine + " \r\nServer:localhost\r\nContent-Type:text/html\r\nContent-length:"+ contentLength +"\r\nConnection: Closed\r\n\r\n" + response.toString());
             writer.flush();
-
             reader.close();
             writer.close();
             clientSocket.close();
@@ -94,47 +94,48 @@ public class httpfsLibrary {
 
     }
 
-    //In this function we check if the path provided is not empty, then if it is a folder or file
+    //In this function we check if the path provided exists, then if it is a folder or file
     private void processGetRequest(String requestPathLine, StringBuilder response){
-        System.out.println("process GET method here");
 
-        // list all the files
-        try {
+        Path searchPath = Paths.get(root.toString(), requestPathLine);
 
-            Path test = Paths.get(requestPathLine).toRealPath();
-            if (Files.exists(test))
-                System.out.println("File exists");
+        if (Files.exists(searchPath)){
+            System.out.println("the path exists");
 
-            File folder = new File(requestPathLine);
+            //If it is a directory, print all the list of files
+            if(Files.isDirectory(searchPath)){
+                try (DirectoryStream<Path> stream = Files.newDirectoryStream(searchPath)) {
+                    for (Path file: stream) {
+                        if(file.toFile().isFile()){
+                            response.append(file.getFileName() + "\r\n");
+                        }
 
-            // list all the files
-            File[] files = folder.listFiles();
-            for(File file : files) {
-                if(file.isFile()) {
-                    System.out.println(file.getName());
-                    response.append(file.getName() + "\r\n");
+                    }
+                } catch (IOException | DirectoryIteratorException x) {
+                    statusLine = " 500 Internal Server Error";
+                    System.err.println(x);
                 }
             }
-        } catch (Exception e) {
-            e.getStackTrace();
+
+            //If it is a file, get all contents and send to client
+            else if(Files.isRegularFile(searchPath)){
+
+                try {
+                    String data = new String(Files.readAllBytes(searchPath));
+                    response.append(data);
+                } catch (IOException e) {
+                    statusLine = " 500 Internal Server Error";
+                    e.printStackTrace();
+                }
+            }
+
         }
 
+        else{
+            statusLine = " 404 Not Found";
+            response.append("File or folder not found");
+        }
 
-        /*
-        //Another way to loop through directory contents
-        Path dir = Paths.get(path);
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
-            for (Path file: stream) {
-                //System.out.println(file.getFileName());
-                if(file.toFile().isFile()){
-                    System.out.println(file.getFileName());
-                    response.append(file.getFileName() + "\r\n");
-                }
-
-            }
-        } catch (IOException | DirectoryIteratorException x) {
-            System.err.println(x);
-        }*/
     }
 
     private void processPostRequest(){
