@@ -24,6 +24,10 @@ public class httpfs {
             System.out.println("Server is connected at port " + serverPort + " waiting for the Client to connect.");
             Socket client = server.accept();
 
+            System.out.println();
+            System.out.println("Client and Server are connected from httpfsLibrary.");
+            System.out.println("---------------------- Http Client Request ----------------------------");
+
             httpfsLibrary httpfsLib = new httpfsLibrary(args, client);
             httpfsLib.parseClientRequest();
 
