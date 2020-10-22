@@ -58,7 +58,7 @@ public class httpfsLibrary {
             if (request.toString().startsWith("GET")) {
                 processGetRequest(request.toString().split(" ")[1], response);
             } else if (request.toString().startsWith("POST")) {
-                processPostRequest();
+                processPostRequest(request.toString().split(" ")[1], entity_body);
             }
 
             int contentLength = response.length();
@@ -95,11 +95,15 @@ public class httpfsLibrary {
                         System.out.print(line);
 
                     // Find the content-length header and find the length of the entity body.
-                    if(line.toString().matches("Content-length:(.*)\r\n")){
+                    if(line.toString().matches("Content-Length:(.*)\r\n")){
                         String string_line = line.toString();
                         string_line = string_line.substring(15).replaceAll("\\s+","");
                         content_length = Integer.parseInt(string_line);
                         has_body = true;
+                    }
+
+                    if(crlf){
+                        entity_body.append(line);
                     }
 
                     // crlf between header and the entity body. Also, it has the content-length header.
@@ -108,16 +112,13 @@ public class httpfsLibrary {
                         crlf = true;
                     }
 
-                    if(crlf){
-                        entity_body.append(line);
-                    }
-
                     request = request.append(line);
 
                     if(request.toString().startsWith("GET") && line.toString().matches("\r\n")){
                         break;
                     }else if(request.toString().startsWith("POST")){
-                        if(entity_body.toString().length() == content_length){
+                        // might have an error here later
+                        if(entity_body.toString().length() == content_length+4 && crlf){
                             break;
                         }
                     }
@@ -170,7 +171,39 @@ public class httpfsLibrary {
 
     }
 
-    private void processPostRequest(){
-        System.out.println("process POST method here");
+    private void processPostRequest(String requestPathLine, StringBuilder entity_body){
+        Path searchPath = Paths.get(root.toString(), requestPathLine);
+
+        // Either the file or directory exists
+        if (Files.exists(searchPath)){
+
+            // If it is a file, overwrite.
+            if(Files.isRegularFile(searchPath)){
+                try {
+                    byte[] content = entity_body.toString().getBytes();
+                    Files.write(searchPath, content);
+                } catch (IOException exception) {
+                    exception.printStackTrace();
+                }
+            }
+
+            // If it is a directory, do nothing.
+            else{
+                System.out.println("It's a directory.");
+            }
+        }
+
+        // If the file doesn't exist, create a text file.
+        else{
+            try {
+                Files.createDirectories(searchPath.getParent());
+                Files.createFile(searchPath);
+                byte[] content = entity_body.toString().getBytes();
+                Files.write(searchPath, content);
+                System.out.println("The file doesn't exist, so it creates a file.");
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        }
     }
 }

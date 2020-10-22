@@ -12,6 +12,7 @@ public class httpfs {
     public static void main(String[] args){
 
         setServerPort(args);
+        printHelp(args);
         new httpfs().runServer(args);
 
     }
@@ -31,6 +32,7 @@ public class httpfs {
                 httpfsLibrary httpfsLib = new httpfsLibrary(args, client);
                 httpfsLib.parseClientRequest();
 
+                // no need?
                 client.close();
             }
 
@@ -47,5 +49,17 @@ public class httpfs {
         }
         else
             serverPort = Integer.parseInt(args[findP+1]);
+    }
+
+    private static void printHelp(String[] args){
+        if(args[0].equalsIgnoreCase("help")){
+            System.out.println("httpfs is a simple file server.");
+            System.out.println("usage: httpfs [-v] [-p PORT] [-d PATH-TO-DIR]");
+            System.out.println("  -v Prints debugging messages.");
+            System.out.println("  -p Specifies the port number that the server will listen and serve at.");
+            System.out.println("     Default is 8080.");
+            System.out.println("  -d Specifies the directory that the server will use to read/write\r\nrequested files. Default is the current directory when launching the\r\napplication.");
+            System.exit(0);
+        }
     }
 }

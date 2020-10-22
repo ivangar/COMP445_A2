@@ -1,7 +1,9 @@
 public class test {
 
     public static void main(String[] args){
-        String src = "123456789\r\n12345678";
+        String src = "{'assignment':1}\r\n";
+
+
 //        String string_num = src.substring(15);
 //        string_num = string_num.replaceAll("\\s+","");
 //        int i = Integer.parseInt(string_num);
