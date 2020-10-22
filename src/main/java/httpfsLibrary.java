@@ -8,14 +8,11 @@ public class httpfsLibrary {
     private Socket clientSocket;
     private boolean is_verbose = false;
     private Path root = Paths.get("").toAbsolutePath();  //default system current dir
-    private PrintWriter writer;
-    private BufferedReader reader;
     private String statusLine = " 200 OK";
 
     public httpfsLibrary(String[] args, Socket client) {
         clientSocket = client;
         setArgs(args);
-        System.out.println("Server directory is " + root.toString());
     }
 
     private void setArgs(String[] args){
@@ -46,36 +43,31 @@ public class httpfsLibrary {
     }
 
     public void parseClientRequest() throws IOException{
-        try{
-            writer = new PrintWriter(clientSocket.getOutputStream(), true);
-            reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            try {
-                while (true) {
-                    StringBuilder request = new StringBuilder();
-                    StringBuilder entity_body = new StringBuilder();
-                    StringBuilder response = new StringBuilder();
+        try(  PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true);
+              BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));)
+        {
 
-                    System.out.println();
+            StringBuilder request = new StringBuilder();
+            StringBuilder entity_body = new StringBuilder();
+            StringBuilder response = new StringBuilder();
 
-                    settings(writer, reader, request, entity_body);
+            System.out.println();
 
-                    if (request.toString().startsWith("GET")) {
-                        processGetRequest(request.toString().split(" ")[1], response);
-                    } else if (request.toString().startsWith("POST")) {
-                        processPostRequest();
-                    }
+            settings(writer, reader, request, entity_body);
 
-                    int contentLength = response.length();
-                    writer.println("HTTP/1.1" + statusLine + " \r\nServer:localhost\r\nContent-Type:text/html\r\nContent-length:" + contentLength + "\r\nConnection: Closed\r\n\r\n" + response.toString());
-                    writer.flush();
-                    System.out.println("---------------------------------------------------------------");
-                }
-            }catch(Exception e){
-                e.printStackTrace();
+            if (request.toString().startsWith("GET")) {
+                processGetRequest(request.toString().split(" ")[1], response);
+            } else if (request.toString().startsWith("POST")) {
+                processPostRequest();
             }
-            reader.close();
-            writer.close();
-            clientSocket.close();
+
+            int contentLength = response.length();
+            writer.println("HTTP/1.1" + statusLine + " \r\nServer:localhost\r\nContent-Type:text/html\r\nContent-length:" + contentLength + "\r\nConnection: Closed\r\n\r\n" + response.toString());
+            writer.flush();
+
+            if(!is_verbose)
+                System.out.println("Request from client finalized");
+            System.out.println("---------------------------------------------------------------\n\n");
 
         }catch (IOException e){
             System.out.println("Connection Problem with connection or port ");
@@ -99,7 +91,8 @@ public class httpfsLibrary {
 
                 // line always has a line.
                 if(character=='\n'){
-                    System.out.print(line);
+                    if(is_verbose)
+                        System.out.print(line);
 
                     // Find the content-length header and find the length of the entity body.
                     if(line.toString().matches("Content-length:(.*)\r\n")){
@@ -144,7 +137,6 @@ public class httpfsLibrary {
         Path searchPath = Paths.get(root.toString(), requestPathLine);
 
         if (Files.exists(searchPath)){
-            System.out.println("the path exists");
 
             //If it is a directory, print all the list of files
             if(Files.isDirectory(searchPath)){

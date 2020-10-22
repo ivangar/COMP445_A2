@@ -18,18 +18,21 @@ public class httpfs {
 
     public void runServer(String[] args){
 
-        try{
+        try (ServerSocket server = new ServerSocket(serverPort)){
 
-            ServerSocket server = new ServerSocket(serverPort);
-            System.out.println("Server is connected at port " + serverPort + " waiting for the Client to connect.");
-            Socket client = server.accept();
+            while (true) {
+                System.out.println("Server is connected at port " + serverPort + " waiting for the Client to connect.");
+                Socket client = server.accept();
 
-            System.out.println();
-            System.out.println("Client and Server are connected from httpfsLibrary.");
-            System.out.println("---------------------- Http Client Request ----------------------------");
+                System.out.println();
+                System.out.println("Client and Server are connected from httpfsLibrary.");
+                System.out.println("---------------------- Http Client Request ----------------------------");
 
-            httpfsLibrary httpfsLib = new httpfsLibrary(args, client);
-            httpfsLib.parseClientRequest();
+                httpfsLibrary httpfsLib = new httpfsLibrary(args, client);
+                httpfsLib.parseClientRequest();
+
+                client.close();
+            }
 
         }catch (IOException e){
             System.out.println("Connection Problem with connection or port " + serverPort);
