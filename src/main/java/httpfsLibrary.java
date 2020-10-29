@@ -180,8 +180,13 @@ public class httpfsLibrary {
             // If it is a file, overwrite.
             if(Files.isRegularFile(searchPath)){
                 try {
-                    byte[] content = entity_body.toString().getBytes();
-                    Files.write(searchPath, content);
+                    if(Files.isWritable(searchPath)){
+                        byte[] content = entity_body.toString().getBytes();
+                        Files.write(searchPath, content);
+                        System.out.println("File is overwrited.");
+                    }else
+                        System.out.println("File can be read only.");
+
                 } catch (IOException exception) {
                     exception.printStackTrace();
                 }
@@ -189,7 +194,7 @@ public class httpfsLibrary {
 
             // If it is a directory, do nothing.
             else{
-                System.out.println("It's a directory.");
+                System.out.println("It's a directory. So, it will not do anything.");
             }
         }
 

@@ -1,3 +1,6 @@
+import java.util.*;
+import java.io.*;
+
 public class test {
 
     public static void main(String[] args){
@@ -17,5 +20,10 @@ public class test {
 //        response = response.append(k);
 //        response = response.append(i);
 //        System.out.println(response);
+
+//        Files file = new Files("C:\\Users\\kiho2\\Desktop\\Comp445_Assignment\\COMP445_A2\\root\\post_permission\\writable.txt");
+
+//        System.out.println(file.canWrite());
+
     }
 }
