@@ -196,6 +196,7 @@ public class httpfsLibrary {
                         Files.write(searchPath, content);
                         System.out.println("File is overwrited.");
                     }else
+                        statusLine = "403 Forbidden";
                         System.out.println("File can be read only.");
 
                 } catch (IOException exception) {
