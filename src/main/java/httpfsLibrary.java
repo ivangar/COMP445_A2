@@ -10,6 +10,7 @@ public class httpfsLibrary {
     private Path root = Paths.get("").toAbsolutePath();  //default system current dir
     private String statusLine = " 200 OK";
 
+    // root = ...COMP445_A2
     public httpfsLibrary(String[] args, Socket client) {
         clientSocket = client;
         setArgs(args);
@@ -39,6 +40,11 @@ public class httpfsLibrary {
                     root_arg = false;
                 }
             }
+        }
+
+        // Default root folder
+        else{
+            root = Paths.get(root.toString(), "root");
         }
     }
 
@@ -134,8 +140,10 @@ public class httpfsLibrary {
 
     //In this function we check if the path provided exists, then if it is a folder or file
     private void processGetRequest(String requestPathLine, StringBuilder response){
+        Path normalizePath = Paths.get(requestPathLine).normalize();
+        String relativePath = normalizePath.toString();
 
-        Path searchPath = Paths.get(root.toString(), requestPathLine);
+        Path searchPath = Paths.get(root.toString(), relativePath);
 
         if (Files.exists(searchPath)){
 
@@ -172,7 +180,10 @@ public class httpfsLibrary {
     }
 
     private void processPostRequest(String requestPathLine, StringBuilder entity_body){
-        Path searchPath = Paths.get(root.toString(), requestPathLine);
+        Path normalizePath = Paths.get(requestPathLine).normalize();
+        String relativePath = normalizePath.toString();
+
+        Path searchPath = Paths.get(root.toString(), relativePath);
 
         // Either the file or directory exists
         if (Files.exists(searchPath)){

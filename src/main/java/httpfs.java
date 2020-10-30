@@ -32,7 +32,6 @@ public class httpfs {
                 httpfsLibrary httpfsLib = new httpfsLibrary(args, client);
                 httpfsLib.parseClientRequest();
 
-                // no need?
                 client.close();
             }
 
