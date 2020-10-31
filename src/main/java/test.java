@@ -1,3 +1,6 @@
+import java.util.*;
+import java.io.*;
+
 public class test {
 
     public static void main(String[] args){
@@ -9,7 +12,7 @@ public class test {
 //        int i = Integer.parseInt(string_num);
 
 //        System.out.println(src.matches("cvv\r\n"));
-        System.out.println(src.length());
+//        System.out.println(src.length());
 
 //        char k = 'k';
 //        char i = 'i';
@@ -17,5 +20,19 @@ public class test {
 //        response = response.append(k);
 //        response = response.append(i);
 //        System.out.println(response);
+
+//        Files file = new Files("C:\\Users\\kiho2\\Desktop\\Comp445_Assignment\\COMP445_A2\\root\\post_permission\\writable.txt");
+
+//        System.out.println(file.canWrite());
+
+        String cwd = System.getProperty("user.dir");
+        System.out.println(cwd);
+
+        File f = new File(cwd );
+
+        for(String i : f.list()){
+            System.out.println(i);
+        }
+
     }
 }

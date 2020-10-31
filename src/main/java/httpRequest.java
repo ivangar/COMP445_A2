@@ -84,7 +84,7 @@ public class httpRequest {
     private void get_request() throws IOException{
 
 
-        this.writer.println("GET " + this.request_URI + " HTTP/1.1");
+        this.writer.println("GET " + this.request_URI + " HTTP/1.0");
         this.writer.println("Host: " + this.host);
         this.writer.println("Connection: keep-alive");  //important to close the connection with server after receiving the response
 
@@ -105,7 +105,7 @@ public class httpRequest {
     private void post_request() throws IOException{
 
         String data = getData();
-        this.writer.println("POST " + request_URI + " HTTP/1.1");
+        this.writer.println("POST " + request_URI + " HTTP/1.0");
         this.writer.println("Host: " + this.host);
         this.writer.println("Content-Length: " + data.length());
         this.writer.println("Connection: close");  //important to close the connection with server after receiving the response
